@@ -1,11 +1,12 @@
 ---
 - hosts: wordpress_nodes
   become: yes
+  vars:
+    path: /var/www/wordpress
+    database: adsk_wp
+    username: wordpress_user
+    password: eloeloelo321560
   tasks:
-    -  name: "Lets create some Gitara Siema file"
-       file:
-         path: ~/GitaraSiema
-         state: touch
     - name: "Install apache server"
       yum:
         name: httpd
@@ -47,9 +48,15 @@
       service:
         name: mariadb
         state: started
-    - name: "Create a new database with name hello_db"
+    - name: "Create a new database"
       mysql_db:
-        name: hello_db
+        name: "{{database}}"
+        state: present
+    - name: "Create database user"
+      mysql_user:
+        name: "{{username}}"
+        password: "{{password}}"
+        priv: '*.*:ALL'
         state: present
     - name: "Configure apache vhost"
       template:
@@ -62,6 +69,6 @@
     - name: "Copy wp-config"
       copy:
         src: templates/wp-config.php
-        dest: /var/www/wordpress/wp-config.php
+        dest: "{{path}}/wp-config.php"
     
     
