@@ -1,0 +1,67 @@
+---
+- hosts: wordpress_nodes
+  become: yes
+  tasks:
+    -  name: "Lets create some Gitara Siema file"
+       file:
+         path: ~/GitaraSiema
+         state: touch
+    - name: "Install apache server"
+      yum:
+        name: httpd
+        state: latest
+    - name: "Install mysql server"
+      yum:
+        name: "{{packages}}"
+        state: present
+      vars:
+        packages: 
+          - mariadb
+          - mariadb-server
+    - name: "Install PHP"
+      yum:
+        name: "{{packages}}"
+        state: latest
+      vars:
+        packages:
+          - php
+          - php-mysql
+    - name: "Restart server httpd sever"
+      service:
+        name: httpd
+        state: restarted
+    - name: "Download wordpress"
+      get_url:
+        url: https://wordpress.org/latest.zip
+        dest: /tmp/wordpress.zip
+    - name: "Extract wordpress"
+      unarchive: 
+        src: /tmp/wordpress.zip
+        dest: /var/www
+        remote_src: yes
+    - name: "Install additional mysql python dependencies"
+      yum:
+        name: MySQL-python
+        state: present
+    - name: "Start service mariadb, if not started"
+      service:
+        name: mariadb
+        state: started
+    - name: "Create a new database with name hello_db"
+      mysql_db:
+        name: hello_db
+        state: present
+    - name: "Configure apache vhost"
+      template:
+        src: templates/vhost.conf
+        dest: /etc/httpd/conf.d/blog.conf
+    - name: "Restart server httpd sever"
+      service:
+        name: httpd
+        state: restarted 
+    - name: "Copy wp-config"
+      copy:
+        src: templates/wp-config.php
+        dest: /var/www/wordpress/wp-config.php
+    
+    
