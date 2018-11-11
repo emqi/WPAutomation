@@ -2,9 +2,9 @@
 - hosts: wordpress_nodes
   become: yes
   vars:
-    path: /var/www/wordpress
-    database: adsk_wp
-    username: wordpress_user
+    wp_directory: /var/www/blogasek
+    database_name: blogasek
+    username: user_blogasek
     password: eloeloelo321560
   tasks:
     - name: "Install apache server"
@@ -50,7 +50,7 @@
         state: started
     - name: "Create a new database"
       mysql_db:
-        name: "{{database}}"
+        name: "{{database_name}}"
         state: present
     - name: "Create database user"
       mysql_user:
@@ -66,9 +66,13 @@
       service:
         name: httpd
         state: restarted 
+    - name: "Create target directory"
+      file: 
+        path: "{{wp_directory}}"
+        state: directory
     - name: "Copy wp-config"
       copy:
         src: templates/wp-config.php
-        dest: "{{path}}/wp-config.php"
+        dest: "{{wp_directory}}/wp-config.php"
     
     
